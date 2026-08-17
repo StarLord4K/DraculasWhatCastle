@@ -39,3 +39,21 @@
 1. **Clone คลังโค้ดนี้ลงเครื่องของคุณ:**
    ```bash
    git clone [https://github.com/your-username/draculas-what-castle.git](https://github.com/your-username/draculas-what-castle.git)
+
+2. **เปิดเล่นทันที:**
+เปิดไฟล์ `index.html` ผ่านเว็บเบราว์เซอร์ใดก็ได้ (Chrome, Firefox, Edge, Safari) แล้วเริ่มผจญภัยได้เลย
+
+---
+
+## ✒️ เครดิตผู้พัฒนา (Credits)
+
+* **Game Design & Concept:** หลอด (สตาร์หลอดโฟร์เค)
+* **Hellish Labour & Code Execution:** Gemini (จิมมี่)
+
+---
+
+> *What a horrible night to have a curse... ขอให้โชคดีกับการเอาชีวิตรอดในปราสาท!*
+
+```
+
+```
