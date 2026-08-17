@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dracula's What Castle?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Mitr:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mitr', sans-serif;
+            background-color: #0b050f;
+        }
+        .gothic-title {
+            font-family: 'Cinzel', serif;
+        }
+        .text-glow {
+            text-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+        }
+        .text-glow-purple {
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #180d24;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4c1d95;
+            border-radius: 3px;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-effect {
+            animation: shake 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-purple-100 min-h-screen flex flex-col justify-between selection:bg-red-800 selection:text-white">
+
+    <!-- Header (Always visible) -->
+    <header class="border-b border-purple-950 bg-black/50 backdrop-blur-md p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 onclick="showScreen('screen-menu')" class="gothic-title text-2xl md:text-3xl font-black text-red-600 tracking-widest text-glow cursor-pointer hover:scale-105 transition-transform">
+                DRACULA'S WHAT CASTLE?
+            </h1>
+            <span class="text-xs font-mono px-2 py-1 bg-red-950/40 border border-red-500/30 rounded text-red-400">v1.2 Rogue-lite</span>
+        </div>
+    </header>
+
+    <!-- Main Screens Container -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 flex flex-col justify-center min-h-0">
+
+        <!-- ================= SCREEN 1: MENU SCREEN ================= -->
+        <div id="screen-menu" class="space-y-8 py-8">
+            <div class="text-center space-y-3">
+                <div class="text-5xl md:text-6xl my-4">🦇</div>
+                <h2 class="gothic-title text-3xl md:text-4xl font-bold text-purple-300 tracking-wider text-glow-purple">ยินดีต้อนรับสู่ห้วงลูปแห่งฝันร้าย</h2>
+                <p class="text-xs md:text-sm text-purple-400 max-w-md mx-auto">
+                    "What is a man? A miserable little pile of secrets!" <br>
+                    - คาสเซิลเวเนียโบราณกล่าวไว้
+                </p>
+            </div>
+
+            <div class="max-w-sm mx-auto space-y-3">
+                <button onclick="startGame()" class="w-full bg-gradient-to-r from-red-950 to-red-800 hover:from-red-900 hover:to-red-700 border border-red-500/40 p-4 rounded-lg font-bold text-sm tracking-widest shadow-lg hover:shadow-red-900/40 transition-all">
+                    ⚔️ เริ่มต้นการเอาชีวิตรอด
+                </button>
+                <button onclick="showScreen('screen-endings')" class="w-full bg-purple-950/60 hover:bg-purple-900 border border-purple-800/40 p-3 rounded-lg font-semibold text-sm tracking-wider transition-all flex justify-between items-center px-4">
+                    <span>🏆 บันทึกฉากจบและรูท</span>
+                    <span id="menu-ending-count" class="text-xs bg-purple-900 px-2 py-0.5 rounded text-purple-300">0 / 4</span>
+                </button>
+                <button onclick="showScreen('screen-how-to')" class="w-full bg-purple-950/60 hover:bg-purple-900 border border-purple-800/40 p-3 rounded-lg font-semibold text-sm tracking-wider transition-all flex justify-between items-center px-4">
+                    <span>📖 วิธีการเล่นและคำแนะนำ</span>
+                    <span>➜</span>
+                </button>
+                <button onclick="showScreen('screen-changelog')" class="w-full bg-purple-950/60 hover:bg-purple-900 border border-purple-800/40 p-3 rounded-lg font-semibold text-sm tracking-wider transition-all flex justify-between items-center px-4">
+                    <span>📜 บันทึกการอัปเดต (Changelog)</span>
+                    <span>➜</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 2: GAME SCREEN ================= -->
+        <div id="screen-game" class="hidden flex flex-col gap-4">
+            
+            <!-- Game Status Bar -->
+            <div class="grid grid-cols-3 gap-2 bg-purple-950/30 border border-purple-900/40 p-3 rounded-lg backdrop-blur-sm">
+                <div class="flex flex-col">
+                    <span class="text-[10px] md:text-xs text-purple-400 uppercase tracking-wider">พลังชีวิต (HP)</span>
+                    <div class="w-full bg-black/50 h-2.5 rounded-full mt-1 overflow-hidden border border-red-950">
+                        <div id="hp-bar" class="bg-gradient-to-r from-red-800 to-red-500 h-full transition-all duration-300" style="width: 100%"></div>
+                    </div>
+                    <span id="hp-text" class="text-[10px] md:text-xs font-semibold text-red-400 mt-1">100 / 100</span>
+                </div>
+                
+                <div class="flex flex-col">
+                    <span class="text-[10px] md:text-xs text-purple-400 uppercase tracking-wider">ระดับความกลัว</span>
+                    <div class="w-full bg-black/50 h-2.5 rounded-full mt-1 overflow-hidden border border-purple-950">
+                        <div id="fear-bar" class="bg-gradient-to-r from-purple-800 to-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <span id="fear-text" class="text-[10px] md:text-xs font-semibold text-indigo-400 mt-1">0 / 100</span>
+                </div>
+
+                <div class="flex flex-col justify-center items-end">
+                    <span class="text-[10px] md:text-xs text-purple-400">ห้องปัจจุบัน</span>
+                    <span id="location-name" class="text-xs md:text-sm font-bold text-red-500 tracking-wide text-right">หน้าประตูทางเข้า</span>
+                </div>
+            </div>
+
+            <!-- Upper Area: Narrative & Artwork -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-0">
+                <!-- Text Narrative -->
+                <div class="md:col-span-2 flex flex-col bg-black/60 border border-purple-950 p-4 rounded-lg overflow-hidden relative h-[280px] md:h-[380px]">
+                    <div id="narrative-container" class="flex-grow overflow-y-auto custom-scrollbar pr-2 space-y-4 text-xs md:text-sm leading-relaxed pb-4">
+                        <!-- Narrative elements injected here -->
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+                </div>
+
+                <!-- Visuals & Inventory -->
+                <div class="flex flex-col gap-4 h-auto md:h-[380px]">
+                    <!-- Room Visual -->
+                    <div class="h-32 md:h-40 bg-purple-950/20 border border-purple-900/40 rounded-lg flex flex-col justify-center items-center text-center p-3 relative overflow-hidden flex-shrink-0">
+                        <div id="room-visual" class="text-5xl md:text-6xl mb-1 filter drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">🏰</div>
+                        <span id="room-status-desc" class="text-[10px] text-purple-300 text-center px-1">สายลมเย็นพัดปะทะใบหน้า</span>
+                    </div>
+
+                    <!-- Inventory -->
+                    <div class="flex-grow bg-black/40 border border-purple-950 p-3 rounded-lg flex flex-col min-h-[110px] md:min-h-0 overflow-hidden">
+                        <span class="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5 block border-b border-purple-950 pb-1">ช่องเก็บของ</span>
+                        <div id="inventory-list" class="flex flex-wrap gap-1.5 overflow-y-auto custom-scrollbar content-start flex-grow">
+                            <span class="text-xs text-purple-600 italic">ไม่มีไอเทมติดตัว</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lower Area: Controls & Logs -->
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Choices -->
+                <div class="bg-black/50 border border-purple-950 p-4 rounded-lg">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-purple-400 block mb-2">คำสั่งและการตัดสินใจ</span>
+                    <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <!-- Option buttons -->
+                    </div>
+                </div>
+
+                <!-- Action Log -->
+                <div class="bg-purple-950/10 border border-purple-950/40 p-2 rounded-lg flex justify-between items-center text-[10px] md:text-xs">
+                    <div id="action-log" class="text-purple-300 truncate pr-4">
+                        เริ่มการเดินทางครั้งใหม่เพื่อเอาชีวิตรอด
+                    </div>
+                    <button onclick="showScreen('screen-menu')" class="px-2.5 py-1 bg-red-950/50 hover:bg-red-900/50 border border-red-500/30 rounded text-[10px] transition-all flex-shrink-0">
+                        🚪 หลบหนีชั่วคราว (เมนูหลัก)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 3: CHANGELOG SCREEN ================= -->
+        <div id="screen-changelog" class="hidden space-y-6">
+            <!-- Credits at the very top -->
+            <div class="bg-gradient-to-r from-red-950/60 to-purple-950/60 border border-red-500/30 p-4 rounded-lg text-center shadow-lg">
+                <span class="text-xs uppercase tracking-widest font-bold text-red-400 block mb-1">🎮 ข้อมูลผู้สร้างสรรค์</span>
+                <p class="text-sm font-bold text-purple-200">
+                    ออกแบบโดย: <span class="text-red-400 font-black">หลอด</span> <span class="mx-2">•</span> แรงงานนรกโดย: <span class="text-purple-400 font-mono">Gemini</span>
+                </p>
+            </div>
+
+            <div class="bg-black/60 border border-purple-950 rounded-lg p-5 flex flex-col h-[350px] md:h-[450px]">
+                <h3 class="gothic-title text-xl font-bold text-red-500 border-b border-purple-950 pb-2 mb-4">บันทึกประวัติการอัปเดต</h3>
+                
+                <!-- Scrollable Changelog List -->
+                <div class="flex-grow overflow-y-auto custom-scrollbar space-y-6 text-sm pr-2">
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center border-b border-purple-900/30 pb-1">
+                            <span class="font-bold text-red-400">v1.2 - The Infinite Loop (เวอร์ชันปัจจุบัน)</span>
+                            <span class="text-xs font-mono text-purple-400">2026-06-16</span>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-1 text-xs text-purple-300">
+                            <li>เปลี่ยนชื่อเกมอย่างเป็นทางการเป็น <strong class="text-red-400 font-bold">"Dracula's What Castle?"</strong></li>
+                            <li>เพิ่มหน้า Menu Screen, หน้า Changelog, หน้าวิธืเล่น และหน้าสรุปฉากจบ</li>
+                            <li>เพิ่มระบบ <strong class="text-purple-400 font-bold">Rogue-lite Loop</strong>: ปราสาทเป็นวงจรลูปที่แวมไพร์จะไม่มีวันตาย จนกว่าจะเก็บฉากจบครบ 4 รูท ถึงจะไขความจริงสู่ฉากจบที่แท้จริงได้!</li>
+                            <li>เพิ่มระบบ <strong class="text-red-400 font-bold">Reset Adventure</strong> สำหรับผู้เล่นที่ประสงค์จะท้าทายลูปมรณะใหม่อีกครั้ง</li>
+                            <li>ใส่คำคม วลีดัง และ References จากซีรีส์เกมปราบปีศาจระดับตำนานอย่าง <em>Symphony of the Night</em></li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center border-b border-purple-900/30 pb-1">
+                            <span class="font-bold text-purple-400">v1.1 - Smooth Scrolling Fix</span>
+                            <span class="text-xs font-mono text-purple-500">2026-06-15</span>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-1 text-xs text-purple-400">
+                            <li>จำกัดความสูงกล่องข้อความหลักให้อยู่ในกรอบ และเพิ่มกลไกเลื่อนหน้าจออัตโนมัติ (Auto scroll) เพื่อไม่ให้หน้าต่างเกมยืดตัวอย่างไร้ขีดจำกัด</li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center border-b border-purple-900/30 pb-1">
+                            <span class="font-bold text-purple-500">v1.0 - First Arrival</span>
+                            <span class="text-xs font-mono text-purple-600">2026-06-14</span>
+                        </div>
+                        <ul class="list-disc pl-5 space-y-1 text-xs text-purple-400">
+                            <li>เปิดตัวระบบเกมเอาตัวรอดพื้นฐาน: ระบบพลังชีวิต (HP), เกจความกลัว (Fear), และระบบสวมใส่ไอเทมสำรอง</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showScreen('screen-menu')" class="px-6 py-2 bg-purple-900 hover:bg-purple-800 border border-purple-600 rounded text-xs tracking-wider transition-all">
+                    ⬅️ ย้อนกลับเมนูหลัก
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 4: HOW TO PLAY SCREEN ================= -->
+        <div id="screen-how-to" class="hidden space-y-6">
+            <div class="bg-black/60 border border-purple-950 rounded-lg p-5 space-y-4">
+                <h3 class="gothic-title text-xl font-bold text-red-500 border-b border-purple-950 pb-2">📖 คู่มือการเอาตัวรอด</h3>
+                
+                <div class="space-y-3 text-xs md:text-sm text-purple-200 leading-relaxed">
+                    <p>
+                        คุณต้องพาตัวเองหลบหนีออกจากปราสาทแดร็กคิวล่าอันลึกลับ โดยทุกการตัดสินใจจะส่งผลต่อชีวิตของคุณทันที:
+                    </p>
+                    <ul class="list-decimal pl-5 space-y-2">
+                        <li><strong class="text-red-400">พลังชีวิต (HP):</strong> หากเหลือ 0 คุณจะพ่ายแพ้ทันที พยายามสวมใส่หรือหาสิ่งของมาป้องกันตัว</li>
+                        <li><strong class="text-indigo-400">ระดับความกลัว:</strong> หากเกจนี้พุ่งเต็ม 100% ร่างกายคุณจะต้านทานไม่ไหวและหักค่า HP อัตโนมัติ 25 หน่วย (ระวังการเสี่ยงในจุดสุ่มเสี่ยง!)</li>
+                        <li><strong class="text-yellow-400">ไอเทมสำคัญ:</strong> ค้นหาเบาะแส ของใช้โบราณ และไขกุญแจทองคำเพื่อเปิดเส้นทางสู่ภายนอก</li>
+                        <li><strong class="text-purple-400">ลูปวิญญาณแรนดอม (Rogue-lite):</strong> แดร็กคิวล่าเป็นอมตะโบราณ การหลบหนีไปได้ในหนึ่งลูปอาจยังไม่ใช่จุดจบของฝันร้าย คุณต้องตามล่าฉากจบทั้ง 4 รูทเพื่อปลดปล่อยปราสาทหลังนี้อย่างสมบูรณ์!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showScreen('screen-menu')" class="px-6 py-2 bg-purple-900 hover:bg-purple-800 border border-purple-600 rounded text-xs tracking-wider transition-all">
+                    ⬅️ ย้อนกลับเมนูหลัก
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 5: ENDINGS SHOWCASE SCREEN ================= -->
+        <div id="screen-endings" class="hidden space-y-6">
+            <div class="bg-black/60 border border-purple-950 rounded-lg p-5">
+                <div class="flex justify-between items-center border-b border-purple-950 pb-3 mb-4">
+                    <h3 class="gothic-title text-xl font-bold text-red-500">🏆 สมุดบันทึกฉากจบและรูท</h3>
+                    <span id="unlocked-count-badge" class="font-bold text-yellow-400 text-sm">ปลดล็อกแล้ว: 0 / 4</span>
+                </div>
+
+                <!-- Showcase Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 text-xs" id="endings-grid">
+                    <!-- Ending slots dynamic generation -->
+                </div>
+
+                <!-- Rogue-lite Progression Hint -->
+                <div class="bg-purple-950/20 border border-purple-900/40 p-4 rounded-lg text-center space-y-1">
+                    <span class="text-xs uppercase font-bold text-purple-400 block">⚙️ คำอธิบายลูปแห่งโชคชะตา</span>
+                    <p id="loop-condition-text" class="text-xs text-purple-200">
+                        คุณต้องสำรวจเส้นทางทั้งหมดเพื่อเตรียมปลิดชีพแดร็กคิวล่าอย่างถาวร
+                    </p>
+                </div>
+            </div>
+
+            <!-- Danger Zone (Reset Progress) -->
+            <div class="bg-red-950/20 border border-red-950/50 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="text-center sm:text-left">
+                    <h4 class="font-bold text-red-400 text-sm">⚠️ เขตพื้นที่อันตราย</h4>
+                    <p class="text-[11px] text-purple-400">ลบข้อมูลฉากจบที่สะสมมาทั้งหมดเพื่อเริ่มการท้าทายลูปมรณะใหม่อีกครั้ง</p>
+                </div>
+                <button id="btn-reset-adventure" onclick="promptResetAdventure()" class="px-4 py-2 bg-red-900/70 hover:bg-red-800 border border-red-500/50 rounded text-xs font-bold tracking-wider text-white transition-all">
+                    🔥 รีเซ็ตความคืบหน้าทั้งหมด
+                </button>
+            </div>
+
+            <div class="text-center pt-2">
+                <button onclick="showScreen('screen-menu')" class="px-6 py-2 bg-purple-900 hover:bg-purple-800 border border-purple-600 rounded text-xs tracking-wider transition-all">
+                    ⬅️ ย้อนกลับเมนูหลัก
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-purple-950 bg-black/60 p-3 text-center text-[10px] md:text-xs text-purple-500 flex flex-col md:flex-row justify-center items-center gap-1">
+        <span>ออกแบบโดย <strong>หลอด</strong> • แรงงานนรกโดย <strong>Gemini</strong></span>
+        <span class="hidden md:inline">•</span>
+        <span>"What a horrible night to have a curse..."</span>
+    </footer>
+
+    <!-- Game Database & Logic -->
+    <script>
+        // Item Definitions
+        const ITEMS = {
+            garlic: { name: "กระเทียมแห้ง", icon: "🧄", desc: "กลิ่นฉุนรุนแรง ใช้ไล่สมุนแวมไพร์ได้" },
+            stake: { name: "ลิ่มไม้คาร์เพเทียน", icon: "🪵", desc: "ลิ่มไม้แหลมคม อาวุธชิ้นเดียวที่จะสังหารแดร็กคิวล่าได้" },
+            holywater: { name: "น้ำมนต์ศักดิ์สิทธิ์", icon: "🧪", desc: "บรรจุในขวดแก้วเหลี่ยม ช่วยปกป้องคุณจากพลังมืด" },
+            key_silver: { name: "กุญแจเงินเก่าแก่", icon: "🔑", desc: "สำหรับเปิดประตูห้องใต้ดินหรือหอคอย" },
+            key_gold: { name: "กุญแจทองคำลงอักขระ", icon: "🗝️", desc: "กุญแจสำคัญสู่ห้องพำนักของแดร็กคิวล่า" },
+            sword: { name: "ดาบอัศวินหัก", icon: "🗡️", desc: "ดาบโบราณที่แม้จะชำรุดแต่ยังคมพอใช้ป้องกันตัว" }
+        };
+
+        // All possible Endings for tracking
+        const ENDINGS_DB = {
+            slay_crypt: {
+                id: "slay_crypt",
+                title: "ปราบมารในโลงศพ",
+                emoji: "⚰️",
+                desc: "ลอบสังหารแดร็กคิวล่าด้วยลิ่มไม้ขณะเขากำลังหลับใหลอย่างราบคาบ"
+            },
+            escape_items: {
+                id: "escape_items",
+                title: "หลบหนีด้วยมนต์ศักดิ์สิทธิ์",
+                emoji: "🧪",
+                desc: "ใช้พลังน้ำมนต์ศักดิ์สิทธิ์ผสมกระเทียมสยบอิทธิฤทธิ์แวมไพร์บนระเบียง"
+            },
+            slay_balcony: {
+                id: "slay_balcony",
+                title: "หักกระดูกบนระเบียงผา",
+                emoji: "🌙",
+                desc: "ดึงลิ่มไม้คาร์เพเทียนกวัดแกว่งสู้ปลิดชีพแดร็กคิวล่าบนหน้าผาจันทร์เต็มดวง"
+            },
+            jump_cliff: {
+                id: "jump_cliff",
+                title: "ความรอดแห่งหุบเหว",
+                emoji: "🍃",
+                desc: "ดิ่งพสุธาหนีตายอย่างไร้แผนการ แต่กระดูกหักรอดชีวิตมาได้อย่างมหัศจรรย์"
+            }
+        };
+
+        // Game Map Rooms
+        const ROOMS = {
+            entrance: {
+                title: "หน้าประตูปราสาท",
+                emoji: "🏰",
+                visualDesc: "สายลมหนาวพัดผ่านผืนป่าทึบเบื้องหลัง ประตูเหล็กบานยักษ์เปิดอ้าต้อนรับอย่างประสงค์ร้าย",
+                desc: "คุณฟื้นคืนสติขึ้นมาที่หน้าทางเข้าปราสาทแดร็กคิวล่า ร่างกายระบมเหมือนตกลงมาจากที่สูง ประตูไม้ด้านในปิดไม่สนิท มีแสงไฟส่องลอดออกมาอย่างน่าสงสัย",
+                options: [
+                    { text: "ผลักประตูแล้วก้าวเข้าไปในห้องโถงใหญ่", target: "grand_hall" },
+                    { text: "สำรวจพุ่มไม้หนามรอบประตูทางเข้าก่อน", action: "explore_entrance", once: true }
+                ]
+            },
+            grand_hall: {
+                title: "ห้องโถงใหญ่",
+                emoji: "🏛️",
+                visualDesc: "โคมระย้าฝุ่นเขรอะ โต๊ะยาวมีคราบดำเกาะกรังพัดเอากลิ่นคาวเลือดโชยมา",
+                desc: "ทันทีที่คุณก้าวเข้ามา ประตูใหญ่ปิดกระแทกตามหลังเสียงดังสนั่น! คุณตระหนักได้ทันทีว่าความถดถอยไม่มีอยู่จริง มีเพียงทางขึ้นไปหอคอยห้องสมุดหรือทางวนลงคุกใต้ดินอันเย็นเยือก",
+                options: [
+                    { text: "เดินบันไดขึ้นไปยังหอคอยและห้องสมุด", target: "library" },
+                    { text: "เดินลงบันไดวนสู่คุกใต้ดินเบื้องล่าง", target: "dungeon" },
+                    { text: "สำรวจหลังม่านสีแดงผืนยักษ์ข้างผนัง", action: "explore_hall", once: true }
+                ]
+            },
+            library: {
+                title: "ห้องสมุดโบราณ",
+                emoji: "📚",
+                visualDesc: "ชั้นหนังสือสูงเอื้อมพังทลาย คัมภีร์กระดาษสาปส่งกลิ่นเกลียดชังปกคลุมห้อง",
+                desc: "ชั้นหนังสือเรียงรายหนาแน่นสมฐานะปราสาท ที่ใจกลางห้องมีโต๊ะทำงานไม้ บนโต๊ะมีสมุดบันทึกฝุ่นกรังเล่มหนึ่งเปิดค้างไว้ และมีแสงสะท้อนบางอย่างจากซอกชั้นลึก",
+                options: [
+                    { text: "เดินย้อนกลับไปที่ห้องโถงใหญ่", target: "grand_hall" },
+                    { text: "อ่านสมุดบันทึกโบราณบนโต๊ะทำงาน", action: "read_diary", once: true },
+                    { text: "ใช้มือเอื้อมค้นหาวัตถุในซอกหนังสือ", action: "find_silver_key", once: true }
+                ]
+            },
+            dungeon: {
+                title: "คุกใต้ดินอับชื้น",
+                emoji: "⛓️",
+                visualDesc: "กลิ่นน้ำเน่าและกลิ่นอับของความทรมานลอยคละคลุ้ง มีหยดน้ำไหลหยดพร่ำไม่หยุด",
+                desc: "ที่นี่ช่างอึดอัด คล้ายมีวิญญาณสถิตอยู่ทุกตารางเมตร มีหีบไม้ผุถูกปิดล็อกตั้งอยู่ในมุมอับ และเสียงลมหายใจแหบแห้งคล้ายอมนุษย์กำลังจ้องมองคุณมาจากซอกข้างๆ",
+                options: [
+                    { text: "เดินขึ้นไปเพื่อกลับสู่ห้องโถงใหญ่", target: "grand_hall" },
+                    { text: "เข้าไปเปิดสำรวจหีบไม้ผุเก่าแก่", action: "search_chest", once: true },
+                    { text: "เดินเข้าไปหาต้นตอเสียงหายใจในเงามืด", action: "dungeon_shadow" }
+                ]
+            },
+            chapel: {
+                title: "โบสถ์ลับบิดเบี้ยว",
+                emoji: "⛪",
+                visualDesc: "แท่นบูชานักบุญที่ถูกทำลายและละเลงอักขระอัปมงคลอย่างบ้าคลั่ง",
+                desc: "สถานที่ศักดิ์สิทธิ์ที่ถูกบิดเบือนโดยลัทธิซาตาน พลังงานทมิฬปกคลุม ทว่าบนแท่นตรงกลางกลับมีอ่างน้ำหินอ่อนที่รักษาน้ำมนต์ศักดิ์สิทธิ์บริสุทธิ์ไม่ให้มอดไหม้ไปกับความชั่วร้าย",
+                options: [
+                    { text: "เดินกลับไปที่คุกใต้ดิน", target: "dungeon" },
+                    { text: "ใช้ขวดแก้วตักน้ำมนต์ศักดิ์สิทธิ์เก็บไว้", action: "take_holywater", once: true }
+                ]
+            },
+            dracula_crypt: {
+                title: "สุสานใต้ดินแดร็กคิวล่า",
+                emoji: "⚰️",
+                visualDesc: "โลงศพหินสลักอักษรกอธิคสีนิล มีไอเยือกเย็นแผ่ออกมาคุกคามเหยื่อ",
+                desc: "ห้องที่ลึกและอันตรายที่สุดในปราสาท ด้านหลังโลงศพนี้มีประตูเหล็กสลักนำไปสู่ระเบียงภายนอก แต่มันถูกลงกลอนแน่นหนา ทางเดียวที่จะหนีออกไปได้คือต้องไขมันออกหรือสังหารแดร็กคิวล่าที่กำลังจำศีลอยู่!",
+                options: [
+                    { text: "ใช้กุญแจทองคำเพื่อเปิดประตูหนีออกสู่ระเบียง", action: "escape_balcony" },
+                    { text: "นำลิ่มไม้ตอกทะลวงอกสังหารแดร็กคิวล่า", action: "slay_dracula" },
+                    { text: "ย้อนกลับไปที่ห้องโถงใหญ่ผ่านทางเชื่อมต่อเร่งด่วน", target: "grand_hall" }
+                ]
+            },
+            balcony: {
+                title: "ระเบียงผาสูงชัน",
+                emoji: "🌙",
+                visualDesc: "จันทร์เต็มดวงฉายแสงนวลกระทบร่างปีศาจ ลมพายุพัดเกรี้ยวกราดใต้หน้าผาอันไร้ความปรานี",
+                desc: "ประตูปิดล็อกกระแทกพังทลาย แดร็กคิวล่าในผ้าคลุมรัตติกาลลอยตัวมาหยุดตรงหน้าคุณ แผ่จิตสังหารอันบ้าคลั่งขัดขวางทางหนีอย่างโกรธแค้น!",
+                options: [
+                    { text: "ชักของวิเศษเข้าสู้ตายถวายชีวิต", action: "final_battle" },
+                    { text: "ตัดสินใจกระโดดดิ่งเหวเบื้องล่างเพื่อท้าทายโชคชะตา", action: "jump_cliff" }
+                ]
+            }
+        };
+
+        // Game State
+        let state = {
+            currentRoom: "entrance",
+            hp: 100,
+            fear: 0,
+            inventory: [],
+            onceEvents: {},
+            gameEnded: false
+        };
+
+        // Persistent Progress (Rogue-lite)
+        let unlockedEndings = [];
+
+        // Load endings from local storage
+        function loadProgress() {
+            try {
+                const stored = localStorage.getItem('dracula_what_castle_endings');
+                if (stored) {
+                    unlockedEndings = JSON.parse(stored);
+                } else {
+                    unlockedEndings = [];
+                }
+            } catch (e) {
+                unlockedEndings = [];
+            }
+            updateProgressUI();
+        }
+
+        // Save progress to local storage
+        function saveEnding(endingId) {
+            if (!unlockedEndings.includes(endingId)) {
+                unlockedEndings.push(endingId);
+                try {
+                    localStorage.setItem('dracula_what_castle_endings', JSON.stringify(unlockedEndings));
+                } catch (e) {}
+            }
+            updateProgressUI();
+        }
+
+        // Update progress UI & Ending lists
+        function updateProgressUI() {
+            // Update counts
+            const currentCount = unlockedEndings.length;
+            document.getElementById("menu-ending-count").textContent = `${currentCount} / 4`;
+            document.getElementById("unlocked-count-badge").textContent = `ปลดล็อกแล้ว: ${currentCount} / 4`;
+
+            // Update Loop information text
+            const loopTextEl = document.getElementById("loop-condition-text");
+            if (currentCount < 4) {
+                loopTextEl.innerHTML = `คุณสำรวจมิติเวลาไปแล้ว <strong class="text-red-400">${currentCount} เส้นทาง</strong> แดร็กคิวล่าจะตื่นในร่างอวตารอมตะวนลูปไม่รู้จบ จงค้นหาจุดบรรจบเพื่อทำลายลูปนี้!`;
+            } else {
+                loopTextEl.innerHTML = `<strong class="text-green-400">★ วงจรครบูรณ์สำเร็จแล้ว! ★</strong> ในการเอาชนะลูปถัดไป แดร็กคิวล่าจะถูกสังหารอย่างถาวรโดยแท้จริง!`;
+            }
+
+            // Build Ending Grid HTML
+            const grid = document.getElementById("endings-grid");
+            grid.innerHTML = "";
+            Object.values(ENDINGS_DB).forEach(end => {
+                const isUnlocked = unlockedEndings.includes(end.id);
+                const block = document.createElement("div");
+                if (isUnlocked) {
+                    block.className = "bg-purple-950/40 border border-yellow-600/40 p-3 rounded-lg flex gap-3 items-start";
+                    block.innerHTML = `
+                        <div class="text-2xl pt-1">${end.emoji}</div>
+                        <div>
+                            <span class="font-bold text-yellow-400 block">${end.title}</span>
+                            <span class="text-[10px] text-purple-300">${end.desc}</span>
+                        </div>
+                    `;
+                } else {
+                    block.className = "bg-black/40 border border-purple-950 p-3 rounded-lg flex gap-3 items-start opacity-50";
+                    block.innerHTML = `
+                        <div class="text-2xl pt-1">🔒</div>
+                        <div>
+                            <span class="font-bold text-purple-500 block">ยังไม่เปิดเผยรูทนี้</span>
+                            <span class="text-[10px] text-purple-600">จงทดลองค้นหาวิธีการหลบหนีรูปแบบอื่นเพื่อปลดล็อก</span>
+                        </div>
+                    `;
+                }
+                grid.appendChild(block);
+            });
+        }
+
+        // Reset progress function
+        function promptResetAdventure() {
+            if (confirm("ท่านแน่ใจหรือไม่ว่าต้องการสลัดพลังวิญญาณทิ้งทั้งหมด? การดำเนินการนี้จะลบฉากจบสะสมทลายลูปกลับสู่ศูนย์!")) {
+                if (confirm("ย้ำอีกครั้ง! ทุกความทรงจำของการพ่ายแพ้และชัยชนะจะถูกลืมเลือนโดยสิ้นเชิง ยืนยันกระทำการนี้หรือไม่?")) {
+                    localStorage.removeItem('dracula_what_castle_endings');
+                    unlockedEndings = [];
+                    updateProgressUI();
+                    alert("ล้างประวัติการผจญภัยเรียบร้อยแล้ว ห้วงลูปกลับคืนสู่วันเริ่มแรก");
+                }
+            }
+        }
+
+        // HTML Screen Switches
+        function showScreen(screenId) {
+            document.getElementById("screen-menu").classList.add("hidden");
+            document.getElementById("screen-game").classList.add("hidden");
+            document.getElementById("screen-changelog").classList.add("hidden");
+            document.getElementById("screen-how-to").classList.add("hidden");
+            document.getElementById("screen-endings").classList.add("hidden");
+
+            document.getElementById(screenId).classList.remove("hidden");
+            
+            // Refresh counts if navigating to menu or endings
+            if (screenId === 'screen-menu' || screenId === 'screen-endings') {
+                updateProgressUI();
+            }
+        }
+
+        // Start Game Init
+        function startGame() {
+            showScreen("screen-game");
+            restartGame();
+        }
+
+        // UI Update Functions for Game
+        const hpBar = document.getElementById("hp-bar");
+        const hpText = document.getElementById("hp-text");
+        const fearBar = document.getElementById("fear-bar");
+        const fearText = document.getElementById("fear-text");
+        const locationName = document.getElementById("location-name");
+        const narrativeContainer = document.getElementById("narrative-container");
+        const roomVisual = document.getElementById("room-visual");
+        const roomStatusDesc = document.getElementById("room-status-desc");
+        const inventoryList = document.getElementById("inventory-list");
+        const optionsContainer = document.getElementById("options-container");
+        const actionLog = document.getElementById("action-log");
+
+        function updateUI() {
+            // HP Bar
+            hpBar.style.width = `${state.hp}%`;
+            hpText.textContent = `${state.hp} / 100`;
+            if (state.hp < 30) {
+                hpBar.classList.remove("from-red-800", "to-red-500");
+                hpBar.classList.add("bg-red-600");
+            } else {
+                hpBar.classList.add("from-red-800", "to-red-500");
+            }
+
+            // Fear Bar
+            fearBar.style.width = `${state.fear}%`;
+            fearText.textContent = `${state.fear} / 100`;
+
+            // Room Title
+            const room = ROOMS[state.currentRoom];
+            locationName.textContent = room.title;
+            roomVisual.textContent = room.emoji;
+            roomStatusDesc.textContent = room.visualDesc;
+
+            // Inventory Rendering
+            inventoryList.innerHTML = "";
+            if (state.inventory.length === 0) {
+                inventoryList.innerHTML = `<span class="text-xs text-purple-600 italic">ไม่มีไอเทมติดตัว</span>`;
+            } else {
+                state.inventory.forEach(itemId => {
+                    const item = ITEMS[itemId];
+                    const itemEl = document.createElement("div");
+                    itemEl.className = "group relative flex items-center gap-1 bg-purple-950/40 border border-purple-500/30 px-2 py-0.5 rounded text-xs hover:border-purple-400 transition-all cursor-help";
+                    itemEl.innerHTML = `
+                        <span>${item.icon}</span>
+                        <span>${item.name}</span>
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 bg-black text-[10px] text-purple-200 p-2 rounded border border-purple-900 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                            ${item.desc}
+                        </div>
+                    `;
+                    inventoryList.appendChild(itemEl);
+                });
+            }
+
+            // Choices Rendering
+            optionsContainer.innerHTML = "";
+            if (!state.gameEnded) {
+                room.options.forEach(opt => {
+                    // Filter once-only actions
+                    if (opt.once && state.onceEvents[opt.action]) {
+                        return;
+                    }
+
+                    const btn = document.createElement("button");
+                    btn.className = "w-full text-left bg-gradient-to-r from-purple-950/80 to-purple-900/60 hover:from-red-950/80 hover:to-red-900/60 border border-purple-900/60 hover:border-red-500/50 p-3 rounded-lg text-xs md:text-sm transition-all duration-150 flex items-center justify-between";
+                    btn.innerHTML = `
+                        <span>${opt.text}</span>
+                        <span class="text-xs text-purple-400">➜</span>
+                    `;
+                    btn.onclick = () => handleChoice(opt);
+                    optionsContainer.appendChild(btn);
+                });
+            } else {
+                // Game Over restart options
+                const btnReturn = document.createElement("button");
+                btnReturn.className = "w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-2.5 px-4 rounded-lg text-center transition-all text-xs";
+                btnReturn.textContent = "🚪 กลับเมนูหลัก";
+                btnReturn.onclick = () => showScreen('screen-menu');
+
+                const btnRestart = document.createElement("button");
+                btnRestart.className = "w-full bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg text-center transition-all text-xs shadow-lg";
+                btnRestart.textContent = "🔄 เล่นรอบลูปถัดไป";
+                btnRestart.onclick = restartGame;
+
+                optionsContainer.appendChild(btnReturn);
+                optionsContainer.appendChild(btnRestart);
+            }
+        }
+
+        // Add Log Entry
+        function addLog(message) {
+            actionLog.innerHTML = `<span class="text-red-400">⚡ ${message}</span>`;
+        }
+
+        // Narrate text
+        function narrate(text, isAlert = false) {
+            const p = document.createElement("p");
+            p.className = `p-3 rounded-lg leading-relaxed ${isAlert ? 'bg-red-950/30 border-l-4 border-red-500 text-red-200 font-semibold' : 'bg-purple-950/10 text-purple-100'}`;
+            p.innerHTML = text;
+            narrativeContainer.appendChild(p);
+            
+            setTimeout(() => {
+                narrativeContainer.scrollTo({
+                    top: narrativeContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 50);
+        }
+
+        // Shake visual effect
+        function triggerShake() {
+            document.body.classList.add("shake-effect");
+            setTimeout(() => {
+                document.body.classList.remove("shake-effect");
+            }, 300);
+        }
+
+        // Adjust stats
+        function adjustHP(amount) {
+            state.hp = Math.max(0, Math.min(100, state.hp + amount));
+            if (amount < 0) {
+                triggerShake();
+                addLog(`สูญเสียพลังชีวิต ${Math.abs(amount)} หน่วย`);
+            } else if (amount > 0) {
+                addLog(`ฟื้นฟูพลังชีวิต ${amount} หน่วย`);
+            }
+            if (state.hp <= 0) {
+                endGame("คุณล้มลงฟุบบนพื้นหินอันยะเยือก ปราสาทดึงดูดวิญญาณของคุณ แดร็กคิวล่าพัดวิญญาณคุณไปสิงสถิตเป็นอสุรกายทาสรับใช้ตลอดเวลาในอนาคตกาล...");
+            }
+        }
+
+        function adjustFear(amount) {
+            state.fear = Math.max(0, Math.min(100, state.fear + amount));
+            if (amount > 0) {
+                addLog(`ระดับความกลัวเพิ่มขึ้น ${amount}%`);
+            } else if (amount < 0) {
+                addLog(`ระดับความกลัวลดลง ${Math.abs(amount)}%`);
+            }
+            if (state.fear >= 100) {
+                adjustHP(-25);
+                narrate("<strong class='text-red-400'>หัวใจเกือบหยุดเต้น!</strong> สติหลุดลอยชั่วขณะด้วยความสยดสยอง คล้ายเสียงกระซิบของแวมไพร์ก้องในหัวจนร่างบิดเกร็ง เสียพลังชีวิตกะทันหัน", true);
+                state.fear = 60;
+            }
+        }
+
+        // Decision logic
+        function handleChoice(option) {
+            if (state.gameEnded) return;
+
+            if (option.target) {
+                state.currentRoom = option.target;
+                const nextRoom = ROOMS[state.currentRoom];
+                
+                // Castlevania reference inject
+                let extraText = "";
+                if (state.currentRoom === "dracula_crypt") {
+                    extraText = "<br><br><span class='text-red-500 font-bold'>\"Die, monster! You don't belong in this world!\"</span> แวบหนึ่งในความมืด คล้ายประโยคนักล่าแวมไพร์สะท้อนก้องผ่านโลงศพสีทมิฬ";
+                }
+                narrate(nextRoom.desc + extraText);
+                updateUI();
+                return;
+            }
+
+            if (option.action) {
+                if (option.once) {
+                    state.onceEvents[option.action] = true;
+                }
+                executeAction(option.action);
+            }
+        }
+
+        // Actions
+        function executeAction(action) {
+            switch(action) {
+                case "explore_entrance":
+                    narrate("คุณใช้เวลาปัดเศษไม้ที่ปกคลุมซากศพของทหารผู้ล้มเหลวคนก่อนหน้า และดึง <strong class='text-purple-300'>ดาบอัศวินหัก</strong> ออกมาจากพวงหนาม!");
+                    adjustHP(-5);
+                    state.inventory.push("sword");
+                    addLog("ได้รับดาบอัศวินหัก");
+                    break;
+
+                case "explore_hall":
+                    narrate("คุณเปิดม่านผืนยักษ์เพื่อมองทัศนียภาพภายนอก ทว่ากลับกระตุ้นรัง <strong class='text-red-400'>ฝูงค้างคาวมรณะ</strong> พุ่งเฉียดเข้ากัดผิวหนังและโจมตีจิตใจอย่างรุนแรง!");
+                    adjustFear(25);
+                    adjustHP(-10);
+                    break;
+
+                case "read_diary":
+                    // Symphony of the Night quotes
+                    narrate("หน้ากระดาษสุดท้ายระบุไว้ว่า: <br><span class='text-indigo-300 italic'>'What is a man? A miserable little pile of secrets! But enough talk... Have at you! หากเจ้าดิ้นรนถึงที่สุด ขุมสมบัติสำคัญถูกซ่อนอยู่ใต้ห้องขังที่มีมนต์สะกด และจำไว้... แดร็กคิวล่าจะไม่ตายจริงหากลูปกาลเวลายังขยับ'</span>");
+                    adjustFear(-15);
+                    break;
+
+                case "find_silver_key":
+                    narrate("คุณสอดมืออันสั่นเทาลงไปในรอยแยกของตู้เก็บคัมภีร์ และสัมผัสได้ถึงของโลหะโบราณ มันคือ <strong class='text-purple-300'>กุญแจเงินเก่าแก่</strong>!");
+                    state.inventory.push("key_silver");
+                    addLog("ได้รับกุญแจเงินเก่าแก่");
+                    break;
+
+                case "search_chest":
+                    if (state.inventory.includes("key_silver")) {
+                        narrate("เสียงสลักกุญแจเงินคลายตัวออกอย่างน่าพึงพอใจ ฝากล่องเปิดเผยถึง <strong class='text-yellow-400'>ลิ่มไม้คาร์เพเทียน</strong> และ <strong class='text-green-300'>กระเทียมแห้ง</strong> มงคล!");
+                        state.inventory.push("stake");
+                        state.inventory.push("garlic");
+                        addLog("ได้รับลิ่มไม้คาร์เพเทียน และ กระเทียม");
+                    } else {
+                        narrate("หีบถูกลงประจุด้วยแม่กุญแจเงินโบราณอย่างแน่นหนา ต้องมีกุญแจที่ทำจากแร่เงินเท่านั้นถึงจะปลดประจุสะกดนี้ได้");
+                        state.onceEvents["search_chest"] = false; // Reset once
+                    }
+                    break;
+
+                case "dungeon_shadow":
+                    narrate("เมื่อย่างก้าวเข้ามุมสลัวของห้องขัง วิญญาณเน่าสถิตซอมบี้หิวโหยคืบคลานเข้ากระโจนหาตัวคุณทันที!");
+                    if (state.inventory.includes("sword")) {
+                        narrate("คุณตัดสินใจวัดพลัง ชักดาบอัศวินหักตวัดตัดแขนและแกว่งพังร่างมันดับสิ้นลงไป แต่เหล็กอันชำรุดก็หักสลายจนใช้ไม่ได้อีกต่อไป อย่างไรก็ตาม คุณสังเกตเห็น <strong class='text-yellow-400'>กุญแจทองคำลงอักขระ</strong> หล่นข้างกระดูกของมัน!");
+                        state.inventory = state.inventory.filter(i => i !== "sword");
+                        state.inventory.push("key_gold");
+                        addLog("สูญเสียดาบอัศวินหัก และ ได้รับกุญแจทองคำ");
+                        
+                        // Add path
+                        if (!ROOMS.dungeon.options.some(o => o.target === 'chapel')) {
+                            ROOMS.dungeon.options.push({ text: "เดินเข้าประตูที่เพิ่งเปิดใหม่สู่โบสถ์บิดเบี้ยว", target: "chapel" });
+                        }
+                    } else {
+                        narrate("คุณขาดอาวุธปกป้องกาย ซอมบี้พุ่งกระชากหัวไหล่และกัดเข้าอย่างจัง ทิ้งรอยแผลมลทินไว้ก่อนจะพยายามตะเกียกตะกายหนีจนมาเจอประตูที่ซ่อนหลังมุมขัง!");
+                        adjustHP(-35);
+                        adjustFear(35);
+                        if (!ROOMS.dungeon.options.some(o => o.target === 'chapel')) {
+                            ROOMS.dungeon.options.push({ text: "วิ่งลนลานผ่านประตูลึกลับสู่โบสถ์บิดเบี้ยว", target: "chapel" });
+                        }
+                    }
+                    if (!ROOMS.dungeon.options.some(o => o.target === 'dracula_crypt')) {
+                        ROOMS.dungeon.options.push({ text: "ปีนบันไดลัดเชื่อมต่อไปยังห้องสุสานใต้ดิน", target: "dracula_crypt" });
+                    }
+                    break;
+
+                case "take_holywater":
+                    // Castlevania reference item
+                    narrate("คุณกรอกน้ำมนต์ที่ยังทอประกายแสงจากสวรรค์เข้าเต็มขวด พลังงานอุ่นรอบตัวช่วยลดอาการหลอนและปะชอนบาดแผลวิปริตทั้งหมด");
+                    state.inventory.push("holywater");
+                    adjustHP(25);
+                    adjustFear(-35);
+                    addLog("ได้รับน้ำมนต์ศักดิ์สิทธิ์");
+                    break;
+
+                case "escape_balcony":
+                    if (state.inventory.includes("key_gold")) {
+                        narrate("คุณลากกุญแจทองคำไสลด์ช่องอักขระสี่ทิศ คลายปราการเหล็กหนาออกด้วยแรงทั้งหมดที่มี บานประตูกระแทกเปิดออกรับไอพายุฝน!");
+                        state.currentRoom = "balcony";
+                        narrate(ROOMS.balcony.desc);
+                    } else {
+                        narrate("ประตูกระจกสลักถูกคลุมด้วยมนต์ทองคำดึกดำบรรพ์ พลังธรรมดาไม่สามารถสั่นสะเทือนได้ จำต้องใช้พลังกุญแจทองคำอักขระเปิดเท่านั้น");
+                    }
+                    break;
+
+                case "slay_dracula":
+                    if (state.inventory.includes("stake")) {
+                        saveEnding("slay_crypt");
+                        handleRogueLiteVictory(
+                            "slay_crypt",
+                            "คุณประคองลิ่มไม้คาร์เพเทียน เล็งกลางกระดูกอกแดร็กคิวล่าในโลง ดึงพลังชีวิตตอกลึกลงไป เลือดสีคล้ำระเบิดเกรียมพร้อมเสียงโหยหวนดังก้องปราสาทสะเทือนสลาย!"
+                        );
+                    } else {
+                        narrate("คุณใช้กำลังบีบมือพยายามงัดฝาโลงศพขึ้นมาโดยไร้แผนการ แดร็กคิวล่าเบิกเนตรโลหิตกะทันหัน อัดพลังคลื่นดำกระแทกร่างคุณลอยไปชนผนังหินอย่างอนาถ!");
+                        adjustHP(-45);
+                        adjustFear(45);
+                    }
+                    break;
+
+                case "final_battle":
+                    narrate("แดร็กคิวล่าสำแดงเดชพุ่งดุจพายุหมอกทมิฬ กรงเล็บแหลมพุ่งเชือดคอกดดันวิญญาณ!");
+                    if (state.inventory.includes("holywater") && state.inventory.includes("garlic")) {
+                        saveEnding("escape_items");
+                        handleRogueLiteVictory(
+                            "escape_items",
+                            "คุณชูกระเทียมป้องกันการทะลวงจิต และสาดน้ำมนต์ศักดิ์สิทธิ์ใส่แดร็กคิวล่าจนไฟสวรรค์แผดเผาผิวหนังจนมันจำยอมล่าถอยกลับเข้ามุมมืดชั่วขณะ เปิดช่องให้คุณโกยอ้าวข้ามสะพานหนีได้สำเร็จ!"
+                        );
+                    } else if (state.inventory.includes("stake")) {
+                        saveEnding("slay_balcony");
+                        handleRogueLiteVictory(
+                            "slay_balcony",
+                            "คุณยิ้มรับความตาย ชักลิ่มไม้เข้ากระหน่ำแทงสวนอกของแดร็กคิวล่าจังหวะปะทะเฉียดฉิว ร่างอันชั่วร้ายเกิดการแตกร้าวผุสลายดั่งหินหักต้านพายุจนสลายหายไปกับเงาจันทร์!"
+                        );
+                    } else {
+                        narrate("คุณเผชิญหน้าความมืดโดยไร้สัมภาระอันเป็นอาวุธ แดร็กคิวล่ารวบตัวคุณขึ้นแท่นผ่าและปักฟันกัดวิปริตสูบโลหิตสีแดงฉ่ำของคอหอยคุณดับลมหายใจไปช้าๆ...");
+                        adjustHP(-100);
+                    }
+                    break;
+
+                case "jump_cliff":
+                    narrate("ในเสี้ยววินาทีอันไร้หนทาง คุณกระโดดข้ามขอบรั้วหลับตาพริ้มทิ้งร่างท้าความสูงลงสู่เหวเบื้องล่าง!");
+                    let roll = Math.random();
+                    if (roll > 0.45) {
+                        saveEnding("jump_cliff");
+                        handleRogueLiteVictory(
+                            "jump_cliff",
+                            "ปาฏิหาริย์เหนือความจริง! ร่างของคุณลงกระแทกกิ่งสนยักษ์ด้านล่างช่วยลดความเร็วลงตามลำดับ แม้คุณจะสลบเหมือดกระดูกหักปางตายแต่ยังชีพพ้นจากขอบเขตปราสาทในที่สุด!"
+                        );
+                    } else {
+                        narrate("ร่างดิ่งดั่งหินกระแทกโขดหินแหลมด้านล่างหน้าผาสูงชัน เสียงกระดูกลั่นแหลกละเอียด ความเจ็บปวดพัดจบสิ้นไปตลอดกาล...");
+                        adjustHP(-100);
+                    }
+                    break;
+            }
+
+            updateUI();
+        }
+
+        // Rogue-lite Ending logic handler
+        function handleRogueLiteVictory(endingId, actionDescription) {
+            const unlockedCount = unlockedEndings.length;
+            let finalNarrative = actionDescription + "<br><br>";
+
+            if (unlockedCount < 4) {
+                // Not all endings unlocked: Loop continues (Rogue-lite cycle)
+                finalNarrative += `
+                    <div class="bg-red-950/40 border border-red-500/30 p-3 rounded text-xs mt-2 space-y-1">
+                        <span class="font-bold text-red-400 block">🔁 วงจรฝันร้ายไม่สิ้นสุด (The Loop Continues)</span>
+                        <p class="text-purple-300 leading-relaxed">
+                            ทว่า... แดร็กคิวล่าหาได้สูญสลายอย่างสมบูรณ์แบบไม่ ความตายครั้งนี้เป็นเพียงเศษเสี้ยวหนึ่งในลูปมรณะของกาลเวลา 
+                            ปราสาทเคลื่อนไหวซ่อมแซมตนเองด้วยสายเลือด และคุณจะลืมตาตื่นขึ้นมาใหม่อีกครั้งเพื่อค้นหาเศษเสี้ยวที่เหลืออยู่...
+                        </p>
+                    </div>
+                `;
+                endGame(finalNarrative, true);
+            } else {
+                // ALL 4 ENDINGS UNLOCKED: TRUE ENDING (The cycle is broken!)
+                finalNarrative += `
+                    <div class="bg-gradient-to-r from-yellow-950/60 to-amber-950/60 border border-yellow-500 p-4 rounded text-xs mt-2 space-y-2 text-yellow-200">
+                        <span class="font-black text-yellow-400 block text-sm tracking-wider">🌟 วงจรสมบูรณ์: ปลดปล่อยความเจ็บปวดชั่วนิรันดร์ (The Cycle is Broken!)</span>
+                        <p class="leading-relaxed">
+                            ด้วยชัยชนะและความทรงจำอันเจ็บปวดจากกาลเวลานับร้อยรอบที่คุณพิชิตมาได้ครบ 4 รูปแบบความจริง... 
+                            ห้วงมิติเวลาลบล้างกฎอมตะของปราสาทแดร็กคิวล่าลงโดยสิ้นเชิง! โลงศพสีนิลผุพังเป็นหน้ากอง เถ้ากระดูกแวมไพร์สูญสลายอย่างถาวร 
+                            ปราสาท <strong class="text-white">"Dracula's What Castle?"</strong> ทลายลงสู่ฝุ่นผงใต้ตีนผา คุณก้าวข้ามคืนแห่งฝันร้ายสู่วันใหม่ในฐานะ <strong class="text-yellow-400">วีรบุรุษผู้ฉีกกฎแห่งลูปมรณะ</strong> เป็นอิสระโดยแท้จริง!
+                        </p>
+                    </div>
+                `;
+                endGame(finalNarrative, true, true);
+            }
+        }
+
+        // End Game UI Trigger
+        function endGame(endingMessage, isVictory = false, isTrueEnding = false) {
+            state.gameEnded = true;
+            
+            const endDiv = document.createElement("div");
+            if (isTrueEnding) {
+                endDiv.className = "p-4 rounded-lg mt-4 text-center border bg-yellow-950/50 border-yellow-500 text-yellow-100 shadow-2xl";
+                endDiv.innerHTML = `
+                    <h3 class="gothic-title font-black text-xl mb-2 text-yellow-400 text-glow">🎉 TRUE VICTORY: พิชิตลูปถาวร!</h3>
+                    <div class="text-xs space-y-2">${endingMessage}</div>
+                `;
+            } else if (isVictory) {
+                endDiv.className = "p-4 rounded-lg mt-4 text-center border bg-green-950/40 border-green-500 text-green-200";
+                endDiv.innerHTML = `
+                    <h3 class="font-bold text-base mb-2">🎉 การหลบหนีสำเร็จ (ชั่วคราว)</h3>
+                    <div class="text-xs">${endingMessage}</div>
+                `;
+            } else {
+                endDiv.className = "p-4 rounded-lg mt-4 text-center border bg-red-950/40 border-red-500 text-red-200";
+                endDiv.innerHTML = `
+                    <h3 class="font-bold text-base mb-2">💀 คุณจบชีวิตลงในปราสาท</h3>
+                    <div class="text-xs mb-1">"${endingMessage}"</div>
+                    <span class="text-[10px] text-red-400 italic block">"What a horrible night to have a curse..."</span>
+                `;
+            }
+            narrativeContainer.appendChild(endDiv);
+            
+            setTimeout(() => {
+                narrativeContainer.scrollTo({
+                    top: narrativeContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 50);
+            
+            updateUI();
+        }
+
+        // Restart Game State
+        function restartGame() {
+            state = {
+                currentRoom: "entrance",
+                hp: 100,
+                fear: 0,
+                inventory: [],
+                onceEvents: {},
+                gameEnded: false
+            };
+            // Clear custom dungeon options added dynamically
+            ROOMS.dungeon.options = [
+                { text: "เดินขึ้นไปเพื่อกลับสู่ห้องโถงใหญ่", target: "grand_hall" },
+                { text: "เข้าไปเปิดสำรวจหีบไม้ผุเก่าแก่", action: "search_chest", once: true },
+                { text: "เดินเข้าไปหาต้นตอเสียงหายใจในเงามืด", action: "dungeon_shadow" }
+            ];
+
+            narrativeContainer.innerHTML = "";
+            actionLog.innerHTML = "เริ่มกาลเวลาหนเอาชีวิตรอดครั้งใหม่...";
+            
+            // Welcome Text with Castlevania quotes
+            narrate("<strong class='text-red-400 gothic-title'>\"DRACULA'S WHAT CASTLE?\"</strong><br>สติสัมปชัญญะของคุณผุดขึ้นมาอย่างยากลำบาก ท้องฟ้ายามดึกสะท้อนสายฟ้าฟาดผ่าผ่านปราสาทอันแร้นแค้น ท่ามกลางเสียงกระซิบอันลี้ลับของลูปกาลเวลาชวนขนหัวลุก...");
+            narrate(ROOMS.entrance.desc);
+            updateUI();
+        }
+
+        // Init on page load
+        window.onload = function() {
+            loadProgress();
+            showScreen("screen-menu");
+        };
+    </script>
+</body>
+</html>
