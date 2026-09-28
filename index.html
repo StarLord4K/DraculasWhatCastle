@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dracula's What Castle? v2.0 The Floating New Sanctuary</title>
+    <title>Dracula's What Castle? v2.1 Insane Forest</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Mitr:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Thasadith:wght@400;700&family=Google+Sans+Flex:opsz,wght@6..144,400&display=swap" rel="stylesheet">
     
     <!-- Custom Theme CSS -->
     <link rel="stylesheet" href="js/theme.css">
@@ -23,7 +23,7 @@
         <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
             <div class="flex items-center gap-2">
                 <span class="text-2xl">🦇</span>
-                <h1 onclick="engine.navigateScreen('screen-menu')" class="gothic-title text-lg sm:text-2xl md:text-3xl font-black text-red-600 tracking-widest text-glow cursor-pointer hover:scale-[1.01] transition-transform">
+                <h1 onclick="engine.navigateScreen('screen-menu')" class="header-title text-lg sm:text-2xl md:text-3xl font-black text-red-600 tracking-widest text-glow cursor-pointer hover:scale-[1.01] transition-transform">
                     DRACULA'S WHAT CASTLE?
                 </h1>
             </div>
@@ -54,7 +54,7 @@
                     ⚔️ <span>เริ่มต้นการเอาชีวิตรอด</span>
                 </button>
                 <button id="btn-endings" class="w-full bg-gradient-to-r from-purple-950 to-purple-900 hover:from-purple-900 hover:to-purple-800 border border-purple-600/40 p-3 rounded-xl font-semibold text-sm text-purple-200 transition-all flex justify-center items-center gap-2">
-                    🏆 <span>ปลดล็อก Endings (<span id="unlocked-count-badge">0</span> / 5)</span>
+                    🏆 <span>ชะตากรรม (<span id="unlocked-count-badge">0 / 5</span>)</span>
                 </button>
                 <button id="btn-how-to" class="w-full bg-purple-950/50 hover:bg-purple-900/60 border border-purple-800/40 p-3 rounded-xl font-semibold text-sm text-purple-300 transition-all flex justify-center items-center gap-2">
                     📖 <span>วิธีการเล่น</span>
@@ -147,8 +147,8 @@
         <!-- ENDINGS SCREEN -->
         <section id="screen-endings" class="hidden space-y-5">
             <div class="text-center">
-                <h2 class="gothic-title text-3xl font-bold text-yellow-400 text-glow-yellow mb-2">ปลดล็อค Endings</h2>
-                <p class="text-sm text-purple-400">ปลดล็อก: <span class="font-bold text-yellow-400" id="unlocked-count">0</span> / 5</p>
+                <h2 class="gothic-title text-3xl font-bold text-yellow-400 text-glow-yellow mb-2">ชะตากรรม</h2>
+                <p class="text-sm text-purple-400">ปลดล็อก: <span class="font-bold text-yellow-400" id="unlocked-count">0 / 5</span></p>
             </div>
 
             <div id="endings-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
