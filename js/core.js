@@ -29,6 +29,19 @@ export class GameEngine {
     }
 
     /**
+     * Escape ข้อความก่อนแสดงผลใน innerHTML (ใช้กับข้อความที่ไม่ได้มาจากเกมโดยตรง)
+     */
+    escapeHTML(str) {
+        return String(str).replace(/[&<>"']/g, c => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[c]));
+    }
+
+    // ---- flags ต่อลูป (ไม่แก้ข้อมูล config อีกต่อไป) ----
+    hasFlag(id) { return !!this.state.flags[id]; }
+    setFlag(id) { this.state.flags[id] = true; }
+
+    /**
      * Get initial game state for a new loop
      */
     getInitialState() {
@@ -38,6 +51,7 @@ export class GameEngine {
             fear: 0,
             inventory: [],
             onceEvents: {},
+            flags: {},
             gameEnded: false
         };
     }
@@ -46,37 +60,91 @@ export class GameEngine {
      * Initialize the game (called on startup)
      */
     init() {
+        this.applyVersionLabels();
         this.loadPersistentData();
         this.persistent.loops++;
         this.savePersistentData(); // sync ทันที ป้องกัน loops หายหากปิดเบราว์เซอร์กลางคัน
     }
 
     /**
-     * Load persistent data from localStorage
+     * ตรวจสอบและทำความสะอาดข้อมูลที่อ่านจาก localStorage
+     * ไม่เชื่อข้อมูลภายนอก: รับเฉพาะชนิดและ id ที่เกมรู้จักเท่านั้น
+     */
+    sanitizePersistent(raw) {
+        const clean = { endings: [], memories: [], loops: 0 };
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return clean;
+
+        const uniqueKnown = (arr, catalog) =>
+            Array.isArray(arr)
+                ? [...new Set(arr.filter(id => typeof id === "string" && Object.prototype.hasOwnProperty.call(catalog, id)))]
+                : [];
+
+        clean.endings = uniqueKnown(raw.endings, ENDINGS);
+        clean.memories = uniqueKnown(raw.memories, MEMORIES);
+        const loops = Number(raw.loops);
+        clean.loops = Number.isFinite(loops) ? Math.min(Math.max(Math.floor(loops), 0), 999999) : 0;
+        return clean;
+    }
+
+    /**
+     * แสดงเลขเวอร์ชั่นและ codename จาก SETTINGS จุดเดียว (ไม่ต้องแก้ HTML ทุกครั้ง)
+     */
+    applyVersionLabels() {
+        const label = `v${SETTINGS.gameVersion} ${SETTINGS.gameCodename}`;
+        document.querySelectorAll("[data-version-label]").forEach(el => { el.textContent = label; });
+        document.querySelectorAll("[data-version-footer]").forEach(el => {
+            el.textContent = `${SETTINGS.gameTitle} ${label}`;
+        });
+        document.title = `Dracula's What Castle? ${label}`;
+    }
+
+    /**
+     * Load persistent data from localStorage (พร้อม migrate จาก key เวอร์ชั่นเก่า)
      */
     loadPersistentData() {
+        let raw = null;
         try {
-            const raw = localStorage.getItem(SETTINGS.storageKey);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                this.persistent = Object.assign(this.persistent, parsed);
+            raw = localStorage.getItem(SETTINGS.storageKey);
+            if (!raw) {
+                for (const oldKey of SETTINGS.legacyStorageKeys || []) {
+                    const legacy = localStorage.getItem(oldKey);
+                    if (legacy) { raw = legacy; break; }
+                }
             }
         } catch (e) {
-            console.warn("Failed to load persistent data:", e);
-            this.persistent = { endings: [], memories: [], loops: 0 };
+            console.warn("อ่าน localStorage ไม่ได้ (อาจถูกปิดใช้งาน):", e);
         }
+
+        let parsed = null;
+        if (raw) {
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                console.warn("ข้อมูลบันทึกเสียหาย เก็บสำรองไว้แล้วเริ่มใหม่:", e);
+                try { localStorage.setItem(SETTINGS.storageKey + "_corrupt_backup", raw); } catch (_) {}
+            }
+        }
+        this.persistent = this.sanitizePersistent(parsed);
     }
 
     /**
      * Save persistent data to localStorage
+     * คืนค่า true เมื่อบันทึกสำเร็จ และแจ้งผู้เล่นเมื่อบันทึกไม่ได้
      */
     savePersistentData() {
+        let ok = true;
         try {
             localStorage.setItem(SETTINGS.storageKey, JSON.stringify(this.persistent));
         } catch (e) {
+            ok = false;
             console.warn("Failed to save persistent data:", e);
+            if (!this._saveWarned) {
+                this._saveWarned = true;
+                this.narrate("<span class='text-orange-400'>⚠️ บันทึกความคืบหน้าไม่ได้ (เบราว์เซอร์อาจปิดการจัดเก็บข้อมูล) ความก้าวหน้าจะหายเมื่อปิดหน้านี้</span>");
+            }
         }
         this.updateProgressUI();
+        return ok;
     }
 
     /**
@@ -474,43 +542,51 @@ export class GameEngine {
     // ACTION HANDLING & CHOICE SYSTEM
     // ============================================
 
+    /**
+     * ตรวจว่าตัวเลือกนี้ใช้ได้ในสถานะปัจจุบันหรือไม่ (ใช้ทั้งตอนวาดปุ่มและตอนกดจริง)
+     */
+    isOptionAvailable(opt) {
+        if (opt.once && this.state.onceEvents[opt.action]) return false;
+        if (opt.requires && !opt.requires.every(id => this.hasMemory(id))) return false;
+        if (opt.requiresItem && !this.hasItem(opt.requiresItem)) return false;
+        if (opt.requiresFlag && !this.hasFlag(opt.requiresFlag)) return false;
+        if (typeof opt.minFear === "number" && this.state.fear < opt.minFear) return false;
+        if (typeof opt.maxFear === "number" && this.state.fear > opt.maxFear) return false;
+        return true;
+    }
+
     handleChoice(opt) {
-        if (this.state.gameEnded) return;
+        if (this.state.gameEnded || this._busy) return;
+        this._busy = true; // กันกดซ้ำ/ดับเบิลคลิกระหว่างประมวลผล
+        try {
+            // ตรวจซ้ำอีกชั้น ไม่พึ่งการซ่อนปุ่มใน UI อย่างเดียว
+            if (opt.target && !ROOMS[opt.target]) {
+                console.warn(`Invalid target room: ${opt.target}`);
+                return;
+            }
+            if (!this.isOptionAvailable(opt)) {
+                console.warn(`Blocked option "${opt.action || opt.target}": เงื่อนไขไม่ผ่าน`);
+                this.renderOptions();
+                return;
+            }
 
-        // Validate conditions before executing — never trust the button alone
-        if (opt.target && !ROOMS[opt.target]) {
-            console.warn(`Invalid target room: ${opt.target}`);
-            return;
-        }
-        if (opt.requires && !opt.requires.every(id => this.hasMemory(id))) {
-            console.warn(`Blocked action "${opt.action}": missing required memory`);
-            return;
-        }
-        if (opt.requiresItem && !this.hasItem(opt.requiresItem)) {
-            console.warn(`Blocked action "${opt.action}": missing required item`);
-            return;
-        }
-        if (typeof opt.minFear === "number" && this.state.fear < opt.minFear) {
-            console.warn(`Blocked action "${opt.action}": fear too low`);
-            return;
-        }
-        if (typeof opt.maxFear === "number" && this.state.fear > opt.maxFear) {
-            console.warn(`Blocked action "${opt.action}": fear too high`);
-            return;
-        }
+            if (opt.target) {
+                this.navigateRoom(opt.target);
+                return;
+            }
 
-        if (opt.once) {
-            this.state.onceEvents[opt.action] = true;
-        }
-
-        if (opt.target) {
-            this.navigateRoom(opt.target);
-            return;
-        }
-
-        if (opt.action) {
-            this.executeAction(opt.action);
-            this.updateUI();
+            if (opt.action) {
+                // mark once เฉพาะเมื่อ action ทำงานสำเร็จ (ไม่เกิด error กลางทาง)
+                this.executeAction(opt.action);
+                if (opt.once) this.state.onceEvents[opt.action] = true;
+                this.updateUI();
+            }
+        } catch (err) {
+            console.error("เกิดข้อผิดพลาดระหว่างประมวลผลตัวเลือก:", err);
+            this.narrate("<span class='text-orange-400'>⚠️ เกิดข้อผิดพลาดบางอย่างในปราสาท ลองเลือกใหม่อีกครั้ง</span>");
+            this.renderOptions();
+        } finally {
+            this._busy = false;
         }
     }
 
@@ -547,11 +623,7 @@ export class GameEngine {
 
         room.options.forEach(opt => {
             // Check if option should be shown
-            if (opt.once && this.state.onceEvents[opt.action]) return;
-            if (opt.requires && !opt.requires.every(id => this.hasMemory(id))) return;
-            if (opt.requiresItem && !this.hasItem(opt.requiresItem)) return;
-            if (typeof opt.minFear === "number" && this.state.fear < opt.minFear) return;
-            if (typeof opt.maxFear === "number" && this.state.fear > opt.maxFear) return;
+            if (!this.isOptionAvailable(opt)) return;
 
             const isEchoOption = opt.requires || opt.action === "search_chest" || opt.action === "take_holywater";
 
@@ -616,11 +688,17 @@ export class GameEngine {
     }
 
     resetGameData() {
-        if (confirm("คุณแน่ใจหรือ? วิญญาณที่อยู่ปราสาทจะตายหมด")) {
+        // ผู้เรียก (UI) ต้องยืนยันกับผู้เล่นมาก่อนแล้ว
+        try {
             localStorage.removeItem(SETTINGS.storageKey);
-            this.persistent = { endings: [], memories: [], loops: 0 };
-            this.updateProgressUI();
-            this.addLog("🔄 ข้อมูลรีเซ็ตแล้ว");
+            for (const k of SETTINGS.legacyStorageKeys || []) localStorage.removeItem(k);
+        } catch (e) {
+            console.warn("ลบข้อมูลไม่ได้:", e);
         }
+        this.persistent = { endings: [], memories: [], loops: 1 };
+        this.state = this.getInitialState();
+        this.savePersistentData();
+        this.navigateScreen("screen-menu");
+        this.addLog("🔄 ข้อมูลรีเซ็ตแล้ว");
     }
 }

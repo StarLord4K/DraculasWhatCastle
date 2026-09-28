@@ -8,10 +8,11 @@
 // GAME SETTINGS
 // ============================================
 export const SETTINGS = {
-    storageKey: "dracula_what_castle_v21",
+    storageKey: "dracula_what_castle_v22",
     gameTitle: "DRACULA'S WHAT CASTLE?",
-    gameVersion: "2.1",
-    gameCodename: "Insane Forest",
+    gameVersion: "2.2",
+    gameCodename: "An Empty Grimoire",
+    legacyStorageKeys: ["dracula_what_castle_v21", "dracula_what_castle_v20", "dracula_what_castle_v16"],
     
     // UI Settings
     textSpeedDefault: 15,
@@ -126,7 +127,9 @@ export const ROOMS = {
         options: [
             { text: "เดินกลับขึ้นไปห้องโถงใหญ่", target: "grand_hall" },
             { text: "เปิดหีบไม้ผุผนึกเงิน", action: "search_chest", once: true },
-            { text: "ก้าวเดินเข้าหาเสียงหายใจในมืด", action: "dungeon_shadow", once: true }
+            { text: "ก้าวเดินเข้าหาเสียงหายใจในมืด", action: "dungeon_shadow", once: true },
+            { text: "ผ่านประตูลับไปโบสถ์", target: "chapel", requiresFlag: "dungeon_secret_open" },
+            { text: "ปีนบันไดลับไปสุสาน", target: "dracula_crypt", requiresFlag: "dungeon_secret_open" }
         ]
     },
 

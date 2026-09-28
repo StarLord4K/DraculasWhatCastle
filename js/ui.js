@@ -62,8 +62,25 @@ export class UIController {
             textSpeedSlider.oninput = (e) => this.engine.setTextSpeed(parseInt(e.target.value));
         }
 
-        if (resetBtn) resetBtn.onclick = () => this.engine.resetGameData();
+        if (resetBtn) resetBtn.onclick = () => {
+            this.closeModal("modal-settings");
+            this.openModal("modal-confirm-reset");
+        };
+
+        const confirmYes = document.getElementById("btn-confirm-reset-yes");
+        const confirmNo = document.getElementById("btn-confirm-reset-no");
+        if (confirmYes) confirmYes.onclick = () => {
+            this.closeModal("modal-confirm-reset");
+            this.engine.resetGameData();
+        };
+        if (confirmNo) confirmNo.onclick = () => this.closeModal("modal-confirm-reset");
         if (closeSettingsBtn) closeSettingsBtn.onclick = () => this.closeModal("modal-settings");
+
+        // กด ESC เพื่อปิด modal ที่เปิดอยู่
+        document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            ["modal-pause", "modal-settings", "modal-confirm-reset"].forEach(id => this.closeModal(id));
+        });
 
         // Back buttons from info screens
         const backFromHowTo = document.getElementById("btn-back-from-howto");
@@ -192,13 +209,9 @@ export class UIController {
                     engine.addItem("key_gold");
                 }
 
-                // Unlock chapel and crypt options dynamically
-                if (!ROOMS.dungeon.options.some(x => x.target === "chapel")) {
-                    ROOMS.dungeon.options.push({ text: "ผ่านประตูลลับไปโบสถ์", target: "chapel" });
-                }
-                if (!ROOMS.dungeon.options.some(x => x.target === "dracula_crypt")) {
-                    ROOMS.dungeon.options.push({ text: "ปีนบันไดลับไปสุสาน", target: "dracula_crypt" });
-                }
+                // เปิดทางลับด้วย flag ของลูปนี้ (ไม่แก้ข้อมูลใน config)
+                engine.setFlag("dungeon_secret_open");
+                engine.narrate("<span class='text-yellow-300'>หลังซากศัตรู ผนังหินด้านหลังเลื่อนเปิดเผยทางลับสองแห่ง</span>");
                 break;
 
             // ===== TRAP CORRIDOR ACTIONS =====
