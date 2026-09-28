@@ -201,6 +201,41 @@ export class UIController {
                 }
                 break;
 
+            // ===== TRAP CORRIDOR ACTIONS =====
+            case "trap_spike_corridor":
+                if (engine.hasItem("garlic")) {
+                    engine.narrate("กลิ่นกระเทียมกลบกลไกตรวจจับกลิ่นเลือดได้พอดี คุณก้าวผ่านแผ่นหินยวบทุกจุดอย่างปลอดภัย!");
+                    engine.unlockMemory("trap_survived");
+                } else if (Math.random() > 0.5) {
+                    engine.narrate("คุณสังเกตรอยขีดบนพื้นหินได้ทัน ก้าวเลี่ยงแผ่นกลไกทั้งหมดอย่างหวุดหวิด");
+                    engine.unlockMemory("trap_survived");
+                } else {
+                    engine.narrate("หอกซ่อนพุ่งออกจากผนังทันทีที่คุณเหยียบแผ่นหินผิด! คุณดิ้นหลบทันแต่โดนบาดที่แขน");
+                    engine.adjustHP(-15);
+                    engine.adjustFear(15);
+                    engine.unlockMemory("trap_survived");
+                }
+                break;
+
+            case "open_healing_chest":
+                engine.narrate("คุณเปิดหีบเรืองแสง แสงทองพวยพุ่งโอบล้อมร่างกายคุณ บาดแผลทั้งหมดเริ่มสมานตัว");
+                engine.adjustHP(40);
+                engine.adjustFear(-20);
+                engine.addLog("💰 พลังฟื้นฟูจากหีบสมบัติ (ใช้ได้ครั้งเดียวต่อลูป)");
+                break;
+
+            // ===== TOWER ACTIONS =====
+            case "examine_tower_bell":
+                engine.narrate("คุณสัมผัสระฆังดำเป็นครั้งแรก ภายในกลไกสลักตัวเลขนับไม่ถ้วน แต่ละรอยคือหนึ่งลูปที่ผ่านมา");
+                engine.unlockMemory("tower_bell");
+                engine.adjustFear(engine.hasMemory("bell") ? -10 : 10);
+                break;
+
+            case "tower_view":
+                engine.narrate("จากยอดหอคอย ป่าทึบรอบปราสาทดูไร้ขอบเขต ราวกับปราสาทนี้ลอยอยู่กลางความว่างเปล่า ไม่มีทางออกอื่นนอกจากเผชิญหน้ากับสิ่งที่รอคุณอยู่ข้างใน");
+                engine.adjustFear(5);
+                break;
+
             // ===== CHAPEL ACTIONS =====
             case "take_holywater":
                 engine.narrate("คุณตักน้ำมนต์ใส่ขวดแก้ว น้ำมนต์อุ่นขึ้นทันทีเมื่อสัมผัส");
@@ -224,8 +259,8 @@ export class UIController {
                     engine.unlockEnding("slay_crypt", "คุณตอกลิ่มไม้คาร์เพเทียนปักทะลุอกแดร็กคิวล่า! ร่างมันสลายเป็นเถ้าถ่านพร้อมกระซิบชื่อคุณ...", "dracula_breath");
                 } else {
                     engine.narrate("คุณเปิดฝาโลงโดยไม่มีลิ่มไม้ แดร็กคิวล่าลืมตาตาสีแดงฉานพุ่งทำร้ายคุณ!");
-                    engine.adjustHP(-45);
-                    engine.adjustFear(40);
+                    engine.adjustHP(-30);
+                    engine.adjustFear(35);
                 }
                 break;
 
@@ -246,17 +281,30 @@ export class UIController {
                 }
                 break;
 
-            case "final_battle":
-                engine.narrate(`แดร็กคิวล่าลอยตัวขึ้นพลางหัวเราะ: <span class='text-red-400'>'แกวนเวียนตายในปราสาทข้ามาแล้ว <b>${engine.persistent.loops}</b> รอบ! ยังไม่ยอมแพ้อีกหรือ?'</span>`);
-                
+            case "final_battle": {
+                const loops = engine.persistent.loops;
+                let draculaLine;
+                if (loops <= 1) {
+                    draculaLine = "แกวนเวียนตายในปราสาทข้ามาแล้วรอบแรก! ยังไม่รู้จักที่นี่ดีพอหรอก";
+                } else if (loops <= 3) {
+                    draculaLine = `แกกลับมาอีกแล้วสินะ... รอบที่ <b>${loops}</b> ข้าเริ่มจำหน้าแกได้`;
+                } else if (loops <= 6) {
+                    draculaLine = `<b>${loops}</b> รอบแล้วที่แกตายซ้ำแล้วซ้ำเล่าในปราสาทข้า... น่าสมเพชสิ้นดี`;
+                } else {
+                    draculaLine = `${loops} รอบ... แกไม่ใช่นักล่าอีกต่อไปแล้ว แกกลายเป็นส่วนหนึ่งของปราสาทนี้เหมือนข้า`;
+                }
+                engine.narrate(`แดร็กคิวล่าลอยตัวขึ้นพลางหัวเราะ: <span class='text-red-400'>'${draculaLine}'</span>`);
+
                 if (engine.hasItem("holywater") && engine.hasItem("garlic")) {
                     engine.unlockEnding("escape_items", "คุณใช้กระเทียมถ่วงจังหวะและสาดน้ำมนต์จนร่างเงามืดถอยร่น เปิดทางหนีสำเร็จ", "holy_echo");
                 } else if (engine.hasItem("stake")) {
                     engine.unlockEnding("slay_balcony", "คุณแทงลิ่มไม้คาร์เพเทียนเข้ากลางอกแดร็กคิวล่าจนร่างมันแตกสลายใต้แสงจันทร์", "moon_echo");
                 } else {
-                    engine.adjustHP(-100);
+                    engine.narrate("ไร้อาวุธในมือ คุณพยายามหลบหลีกกรงเล็บของมันอย่างสุดกำลัง แต่ก็ยังโดนฟาดเข้าอย่างจัง");
+                    engine.adjustHP(-55);
                 }
                 break;
+            }
 
             case "use_drawing_tactic":
                 engine.narrate("คุณนึกถึงภาพวาด Lost Drawing พุ่งตัวไปมุมขวาของระเบียง เงาแดร็กคิวล่าเสียจังหวะเปิดช่องโหว่!");
@@ -275,8 +323,19 @@ export class UIController {
                 if (engine.hasMemory("fall_echo") || Math.random() > 0.4) {
                     engine.unlockEnding("jump_cliff", "คุณกระแทกกิ่งสนกลางทาง ช่วยชะลอความเร็วและรอดชีวิตออกจากปราสาทอย่างเหลือเชื่อ!", "fall_echo");
                 } else {
-                    engine.narrate("ร่างของคุณกระแทกโขดหินด้านล่างผาสูงชัน...");
-                    engine.adjustHP(-100);
+                    engine.narrate("ร่างของคุณกระแทกโขดหินด้านล่างผาสูงชัน เจ็บปวดสุดขีดแต่ยังไม่ถึงตาย...");
+                    engine.adjustHP(-60);
+                }
+                break;
+
+            case "fear_reckless_attack":
+                engine.narrate("<span class='text-purple-400 italic'>ภาพหลอนบดบังความคิด คุณพุ่งเข้าใส่แดร็กคิวล่าโดยไม่ทันคิดหน้าคิดหลัง!</span>");
+                if (engine.hasItem("stake")) {
+                    engine.unlockEnding("slay_balcony", "แม้จะบุ่มบ่ามไร้แผน แต่จังหวะบ้าบิ่นกลับเปิดช่องให้คุณตอกลิ่มไม้เข้ากลางอกแดร็กคิวล่าได้สำเร็จ!", "moon_echo");
+                } else {
+                    engine.narrate("มือเปล่าสู้กับปีศาจ ผลลัพธ์เป็นไปตามคาด คุณโดนฟาดกระเด็นอย่างรุนแรง");
+                    engine.adjustHP(-40);
+                    engine.adjustFear(-30); // อย่างน้อยการระบายพลังก็ช่วยให้สงบลง
                 }
                 break;
 
@@ -298,24 +357,7 @@ export class UIController {
         const originalExecute = this.engine.executeAction.bind(this.engine);
         this.engine.executeAction = (action) => {
             this.executeGameAction(action);
+            this.engine.updateUI();
         };
     }
-}
-
-/**
- * Initialize everything on page load
- */
-export function initializeGame() {
-    // Create game engine instance
-    window.engine = window.engine || new (require('./core.js').GameEngine)();
-    
-    // Create UI controller and link it to engine
-    window.ui = new UIController(window.engine);
-    window.ui.setupActionHandlers();
-    
-    // Initialize engine
-    window.engine.init();
-    
-    // Show menu screen
-    window.engine.navigateScreen("screen-menu");
 }

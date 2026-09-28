@@ -48,7 +48,7 @@ export class GameEngine {
     init() {
         this.loadPersistentData();
         this.persistent.loops++;
-        this.updateProgressUI();
+        this.savePersistentData(); // sync ทันที ป้องกัน loops หายหากปิดเบราว์เซอร์กลางคัน
     }
 
     /**
@@ -99,6 +99,7 @@ export class GameEngine {
         this.persistent.memories.push(id);
         this.savePersistentData();
         this.addLog(`🕯️ ปลดล็อกความทรงจำ: ${MEMORIES[id].title}`);
+        this.narrate(`<span class='text-yellow-300'>🕯️ <strong>ความทรงจำใหม่ปลดล็อก:</strong> ${MEMORIES[id].title}<br><span class='text-xs text-yellow-200/80 italic'>${MEMORIES[id].effect}</span></span>`);
         return true;
     }
 
@@ -218,6 +219,7 @@ export class GameEngine {
     // ============================================
 
     adjustHP(amount) {
+        const wasCritical = this.state.hp < SETTINGS.hpCritical;
         this.state.hp = Math.max(0, Math.min(SETTINGS.maxHP, this.state.hp + amount));
 
         if (amount < 0) {
@@ -230,14 +232,33 @@ export class GameEngine {
 
         if (this.state.hp <= 0) {
             this.endGame("คุณล้มลงบนพื้นหินเย็นจัด ร่างกายสูญสิ้นพลัง วิญญาณถูกดูดกลับไปขังในปราสาทอีกครั้ง");
+            return;
+        }
+
+        // HP critical warning (only trigger once when crossing the threshold downward)
+        if (this.state.hp < SETTINGS.hpCritical && !wasCritical) {
+            this.narrate("<strong class='text-red-500'>[ร่างกายใกล้ล้มเหลว]</strong> หัวใจคุณเต้นแผ่วลงทุกที มือสั่นจนแทบจับสิ่งของไม่อยู่ นี่คือสัญญาณว่าคุณต้องหาทางรักษาตัวโดยด่วน", true);
         }
     }
 
     adjustFear(amount) {
+        const wasHigh = this.state.fear >= SETTINGS.fearHighThreshold;
         this.state.fear = Math.max(0, Math.min(SETTINGS.maxFear, this.state.fear + amount));
 
         if (amount > 0) this.addLog(`👻 ระดับความกลัวเพิ่มขึ้น ${amount}%`);
         if (amount < 0) this.addLog(`😌 ระดับความกลัวลดลง ${Math.abs(amount)}%`);
+
+        // Hallucination texts when fear crosses the high threshold (but hasn't hit max yet)
+        if (this.state.fear >= SETTINGS.fearHighThreshold && this.state.fear < SETTINGS.fearThreshold && !wasHigh) {
+            const hallucinations = [
+                "เงาบนกำแพงบิดเบี้ยวเป็นรูปหน้าคนที่คุณจำไม่ได้ว่าเป็นใคร",
+                "คุณได้ยินเสียงกระซิบชื่อคุณจากทุกทิศทางพร้อมกัน",
+                "พื้นหินใต้เท้าเหมือนเต้นเป็นจังหวะเดียวกับหัวใจคุณ",
+                "แสงเทียนกระพริบเป็นรูปนาฬิกาทรายเป็นเสี้ยววินาที"
+            ];
+            const pick = hallucinations[Math.floor(Math.random() * hallucinations.length)];
+            this.narrate(`<span class='text-purple-400 italic'>[ภาพหลอน] ${pick}</span>`);
+        }
 
         // Fear threshold consequence
         if (this.state.fear >= SETTINGS.fearThreshold) {
@@ -372,9 +393,11 @@ export class GameEngine {
     updateProgressUI() {
         const endingCount = document.getElementById("menu-ending-count");
         const unlockedBadge = document.getElementById("unlocked-count-badge");
+        const unlockedCount = document.getElementById("unlocked-count");
 
         if (endingCount) endingCount.textContent = `${this.persistent.endings.length} / ${SETTINGS.maxEndings}`;
         if (unlockedBadge) unlockedBadge.textContent = `${this.persistent.endings.length} / ${SETTINGS.maxEndings}`;
+        if (unlockedCount) unlockedCount.textContent = `${this.persistent.endings.length} / ${SETTINGS.maxEndings}`;
 
         // Render endings grid
         const endingsGrid = document.getElementById("endings-grid");
@@ -454,6 +477,28 @@ export class GameEngine {
     handleChoice(opt) {
         if (this.state.gameEnded) return;
 
+        // Validate conditions before executing — never trust the button alone
+        if (opt.target && !ROOMS[opt.target]) {
+            console.warn(`Invalid target room: ${opt.target}`);
+            return;
+        }
+        if (opt.requires && !opt.requires.every(id => this.hasMemory(id))) {
+            console.warn(`Blocked action "${opt.action}": missing required memory`);
+            return;
+        }
+        if (opt.requiresItem && !this.hasItem(opt.requiresItem)) {
+            console.warn(`Blocked action "${opt.action}": missing required item`);
+            return;
+        }
+        if (typeof opt.minFear === "number" && this.state.fear < opt.minFear) {
+            console.warn(`Blocked action "${opt.action}": fear too low`);
+            return;
+        }
+        if (typeof opt.maxFear === "number" && this.state.fear > opt.maxFear) {
+            console.warn(`Blocked action "${opt.action}": fear too high`);
+            return;
+        }
+
         if (opt.once) {
             this.state.onceEvents[opt.action] = true;
         }
@@ -505,6 +550,8 @@ export class GameEngine {
             if (opt.once && this.state.onceEvents[opt.action]) return;
             if (opt.requires && !opt.requires.every(id => this.hasMemory(id))) return;
             if (opt.requiresItem && !this.hasItem(opt.requiresItem)) return;
+            if (typeof opt.minFear === "number" && this.state.fear < opt.minFear) return;
+            if (typeof opt.maxFear === "number" && this.state.fear > opt.maxFear) return;
 
             const isEchoOption = opt.requires || opt.action === "search_chest" || opt.action === "take_holywater";
 

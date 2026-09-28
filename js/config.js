@@ -8,10 +8,10 @@
 // GAME SETTINGS
 // ============================================
 export const SETTINGS = {
-    storageKey: "dracula_what_castle_v20",
+    storageKey: "dracula_what_castle_v21",
     gameTitle: "DRACULA'S WHAT CASTLE?",
-    gameVersion: "2.0",
-    gameCodename: "The Floating New Sanctuary",
+    gameVersion: "2.1",
+    gameCodename: "Insane Forest",
     
     // UI Settings
     textSpeedDefault: 15,
@@ -24,7 +24,8 @@ export const SETTINGS = {
     
     // Balance
     fearThreshold: 100, // When fear hits this, trigger consequence
-    hpCritical: 30,     // When HP drops below this, bar changes color
+    hpCritical: 30,     // When HP drops below this, bar changes color + special dialogue
+    fearHighThreshold: 70, // When fear exceeds this, hallucination texts trigger
     
     // Debug/Development
     debugMode: false
@@ -51,12 +52,51 @@ export const ROOMS = {
         emoji: "🏛️",
         visualDesc: "โคมระย้าฝุ่นเขรอะสั่นไหวทั้งที่ไร้สายลม",
         desc: "ประตูปิดลงตามหลังเสียงดังปัง! เสียงระฆังดำก้องกังวานหนึ่งครั้งจากหอคอย บรรยากาศรอบตัวเต็มไปด้วยความกดดัน",
-        hint: "ห้องโถงเป็นศูนย์กลาง คุณสามารถไปห้องสมุดเพื่อหาเบาะแส หรือลงคุกใต้ดินเพื่อหากุญแจและอาวุธ",
+        hint: "ห้องโถงเป็นศูนย์กลาง คุณสามารถไปห้องสมุดเพื่อหาเบาะแส ลงคุกใต้ดินเพื่อหากุญแจและอาวุธ หรือลองเดินผ่านทางเดินกับดักไปยังห้องคลังสมบัติ",
         options: [
             { text: "ขึ้นบันไดวนไปห้องสมุดโบราณ", target: "library" },
             { text: "ลงบันไดหินไปคุกใต้ดิน", target: "dungeon" },
+            { text: "เดินเข้าทางเดินแคบด้านหลังบันได", target: "trap_corridor" },
             { text: "สำรวจม่านกำมะหยี่สีแดงกำแพงขวา", action: "explore_hall", once: true },
             { text: "แตะกำแพงหินแล้วหลับตาฟังเสียงระฆัง", action: "listen_bell", requires: ["bell"], once: true }
+        ]
+    },
+
+    trap_corridor: {
+        title: "ทางเดินกับดัก",
+        emoji: "🕸️",
+        visualDesc: "พื้นหินเรียงตัวไม่สม่ำเสมอ บางแผ่นยวบเมื่อเหยียบ",
+        desc: "ทางเดินแคบทอดยาวสู่ความมืด พื้นหินบางจุดมีรอยขีดเป็นกลไกซ่อนอยู่ กลิ่นสนิมเหล็กโชยมาจากปลายทาง",
+        hint: "สังเกตพื้นหินให้ดีก่อนก้าวเดิน หากมีกระเทียมติดตัวอาจช่วยพรางกลไกตรวจจับกลิ่นได้",
+        options: [
+            { text: "ย้อนกลับไปห้องโถงใหญ่", target: "grand_hall" },
+            { text: "ก้าวเดินอย่างระมัดระวังผ่านกับดักหอก", action: "trap_spike_corridor", once: true },
+            { text: "เดินต่อไปยังห้องคลังสมบัติ", target: "treasure_vault", requires: ["trap_survived"] }
+        ]
+    },
+
+    treasure_vault: {
+        title: "ห้องคลังสมบัติเก่าแก่",
+        emoji: "💰",
+        visualDesc: "เหรียญทองและเครื่องประดับกระจัดกระจายเต็มพื้น",
+        desc: "ห้องเล็กๆ เต็มไปด้วยของมีค่าที่ไม่มีใครแตะต้องมานาน กลางห้องมีหีบไม้ประดับทองคำเรืองแสงอ่อนๆ ราวกับยังมีพลังหลงเหลืออยู่",
+        hint: "หีบเรืองแสงนี้ฟื้นพลังให้คุณได้ แต่ใช้ได้เพียงครั้งเดียวต่อการเดินทางหนึ่งรอบเท่านั้น",
+        options: [
+            { text: "ย้อนกลับไปทางเดินกับดัก", target: "trap_corridor" },
+            { text: "เปิดหีบเรืองแสงเพื่อฟื้นพลัง", action: "open_healing_chest", once: true }
+        ]
+    },
+
+    tower: {
+        title: "หอคอยพังทลาย",
+        emoji: "🗼",
+        visualDesc: "ลมโกรกผ่านรอยแตกของกำแพงหินโบราณ",
+        desc: "บันไดวนเก่าแก่นำขึ้นสู่ยอดหอคอยที่พังครึ่งหนึ่ง จากที่นี่มองเห็นป่าทึบรอบปราสาทได้ไกลสุดลูกหูลูกตา ระฆังดำแขวนอยู่กลางหอ",
+        hint: "หอคอยเชื่อมกับเสียงระฆังดำที่คุณได้ยินตลอดเกมส์ ลองสำรวจดูว่ามีอะไรซ่อนอยู่",
+        options: [
+            { text: "ลงบันไดกลับไปห้องสมุด", target: "library" },
+            { text: "สำรวจกลไกระฆังดำ", action: "examine_tower_bell", once: true },
+            { text: "มองลงไปยังป่าทึบเบื้องล่าง", action: "tower_view", once: true }
         ]
     },
 
@@ -64,10 +104,11 @@ export const ROOMS = {
         title: "ห้องสมุดโบราณ",
         emoji: "📚",
         visualDesc: "คัมภีร์เก่าฟอนต์ประหลาดกองสูงเฉียดเพดาน",
-        desc: "โต๊ะไม้กลางห้องมีไดอารี่หนังเปิดค้างไว้ ผนังฝั่งหนึ่งมีกรอบรูปโบราณผุพังแขวนเอียงอยู่",
+        desc: "โต๊ะไม้กลางห้องมีไดอารี่หนังเปิดค้างไว้ ผนังฝั่งหนึ่งมีกรอบรูปโบราณผุพังแขวนเอียงอยู่ มุมห้องมีบันไดวนแคบนำขึ้นสู่หอคอย",
         hint: "อ่านไดอารี่เพื่อเข้าใจความลับของลูป ค้นชั้นหนังสือเพื่อหากุญแจเงิน หรือสำรวจกรอบรูปหากมีความทรงจำ",
         options: [
             { text: "เดินกลับลงไปห้องโถงใหญ่", target: "grand_hall" },
+            { text: "ขึ้นบันไดวนไปหอคอย", target: "tower" },
             { text: "อ่านบันทึกไดอารี่บนโต๊ะไม้", action: "read_diary", once: true },
             { text: "ค้นซอกชั้นหนังสือเก่าแก่", action: "find_silver_key", once: true },
             { text: "สำรวจกรอบรูปเพื่อดูภาพวาดที่หายไป", action: "examine_drawing", once: true },
@@ -126,7 +167,8 @@ export const ROOMS = {
             { text: "ตัดสินใจกระโดดลงเหวเบื้องล่าง", action: "jump_cliff" },
             { text: "ฟาดแซ่หนังใส่แดร็กคิวล่าพร้อมประกาศนามนักล่า", action: "use_whip_attack", requiresItem: "whip" },
             { text: "จ้องมองเงาของแดร็กคิวล่าบนพื้น", action: "study_shadow", requires: ["moon_echo"] },
-            { text: "ใช้มุมอับจากภาพวาด Lost Drawing กะจังหวะ", action: "use_drawing_tactic", requires: ["lost_drawing"] }
+            { text: "ใช้มุมอับจากภาพวาด Lost Drawing กะจังหวะ", action: "use_drawing_tactic", requires: ["lost_drawing"] },
+            { text: "ยอมจำนนต่อภาพหลอนแล้วพุ่งเข้าใส่มันแบบไม่คิดชีวิต", action: "fear_reckless_attack", minFear: 70 }
         ]
     }
 };
@@ -226,6 +268,16 @@ export const MEMORIES = {
         title: "มงกุฎมืดเรบิริอน",
         desc: "อาจารย์ของแดร็กคิวล่า ปลุกสัญชาตญาณปีศาจ",
         effect: "ปลดล็อก ending ที่มืด"
+    },
+    trap_survived: {
+        title: "ก้าวที่รอดพ้นกับดัก",
+        desc: "คุณจำแผ่นหินที่ยวบตัวได้ทุกจุดในทางเดินนั้น",
+        effect: "เดินผ่านทางเดินกับดักไปคลังสมบัติได้อย่างปลอดภัย"
+    },
+    tower_bell: {
+        title: "กลไกระฆังดำ",
+        desc: "ระฆังนี้ไม่ได้แขวนไว้เฉยๆ แต่เป็นตัวนับจังหวะการวนลูปทั้งหมด",
+        effect: "เข้าใจธรรมชาติของห้วงเวลาลึกซึ้งขึ้น"
     }
 };
 

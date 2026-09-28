@@ -38,8 +38,9 @@
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.8);
     
     /* Font Stacks */
-    --font-gothic: 'Cinzel', serif;
-    --font-thai: 'Mitr', sans-serif;
+    --font-header: 'Cinzel', serif;          /* เฉพาะชื่อเกมแถบบนสุดเท่านั้น */
+    --font-gothic: 'Thasadith', sans-serif;  /* หัวข้ออื่นๆ ที่เคยใช้ Cinzel */
+    --font-thai: 'Google Sans Flex', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -77,6 +78,12 @@ body {
 
 .gothic-title {
     font-family: var(--font-gothic);
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.header-title {
+    font-family: var(--font-header);
     letter-spacing: 2px;
     font-weight: 700;
 }
